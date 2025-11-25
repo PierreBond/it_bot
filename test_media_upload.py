@@ -13,7 +13,7 @@ api = tweepy.API(auth)
 
 video_path = "video.mp4"
 
-print("Exists:", os.path.exists(video_path))
+print("Exists:", os.path.exists(video_path))     
 if os.path.exists(video_path):
     print("Size (bytes):", os.path.getsize(video_path))
 

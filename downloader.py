@@ -14,7 +14,14 @@ def download_vid(url):
         # Do not pass a format selection so yt-dlp can decide and merge
         # audio/video when needed.
         result = subprocess.run(
-            ["yt-dlp", "-o", output_template, url],
+            [
+                "yt-dlp",
+                # Use a cookies file to bypass Instagram's login wall.
+                # This is more reliable than --cookies-from-browser.
+                # You must export your cookies from a logged-in browser session.
+                "--cookies", "cookies.txt",
+                "-o", output_template, url
+            ],
             capture_output=True, text=True, timeout=180
         )
 

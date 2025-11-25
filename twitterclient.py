@@ -1,5 +1,6 @@
-import tweepy 
-import config 
+import tweepy
+import config
+from tweepy import TweepyException
 
 def post_to_twitter(video_path, text=""):
     # Validate credentials
@@ -22,30 +23,23 @@ def post_to_twitter(video_path, text=""):
 
     try:
         media = api.media_upload(video_path)
-    except Exception as e:
-        # Provide more details from Tweepy/Twitter response if available
-        detail = None
-        try:
-            # Tweepy exceptions may include a .response attribute
-            detail = getattr(e, 'response', None)
-            if detail is not None:
-                text = getattr(detail, 'text', None) or str(detail)
-                code = getattr(detail, 'status_code', None)
-                raise Exception(f"media_upload failed: {e} (status={code}) response={text}")
-        except Exception:
-            pass
-        raise Exception(f"media_upload failed: {e}")
+    except TweepyException as e:
+        # Add more detail to the exception
+        response = getattr(e, "response", None)
+        if response is not None:
+            raise Exception(f"media_upload failed with status {response.status_code}: {response.text}") from e
+        raise Exception(f"media_upload failed: {e}") from e
 
     try:
         api.update_status(status=text, media_ids=[media.media_id])
-    except Exception as e:
-        detail = None
-        try:
-            detail = getattr(e, 'response', None)
-            if detail is not None:
-                text = getattr(detail, 'text', None) or str(detail)
-                code = getattr(detail, 'status_code', None)
-                raise Exception(f"update_status failed: {e} (status={code}) response={text}")
-        except Exception:
-            pass
-        raise Exception(f"update_status failed: {e}")
+    except TweepyException as e:
+        response = getattr(e, "response", None)
+        if response is not None:
+            resp_text = getattr(response, 'text', '')
+            if "You currently have access to a subset of X API" in resp_text:
+                 raise Exception(
+                    "Posting tweet failed (403 Forbidden): Your Twitter Developer App access level is too low. "
+                    "Please upgrade to the 'Basic' tier or higher in the developer portal to post tweets."
+                ) from e
+            raise Exception(f"update_status failed with status {response.status_code}: {resp_text}") from e
+        raise Exception(f"update_status failed: {e}") from e

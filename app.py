@@ -32,7 +32,7 @@ def handle_message(update, context):
     # Post step
     update.message.reply_text("Posting to Twitter...")
     try:
-        post_to_twitter(path)
+        post_to_twitter(path, text=ig_url)
     except Exception as e:
         tb = traceback.format_exc()
         print("Twitter post failed:\n", tb)
